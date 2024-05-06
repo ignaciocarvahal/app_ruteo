@@ -34,7 +34,7 @@ def obtener_dataframe_datos(fecha: str):
     
     # retiros directamente en bodega, por lo tanto no lo georreferenciamos
     # Filtrar y guardar en su propio DataFrame
-    
+
     df_retiros = df[df["TIPO DE ENTREGA"].isin(['RETIRA TRANS.EXTERNO', 'RETIRA CLIENTE'])].copy()
     
     df_retiros = df_retiros.rename(columns={
@@ -46,7 +46,9 @@ def obtener_dataframe_datos(fecha: str):
         "DIRECCION": "DIRECCIÓN",
         "DATOS TRANSPORTE EXTERNO": "EMPRESA EXT"
     })
-    df_retiros['RUTA'] = 'S/I'
+
+    df_retiros['RUTA'] = 'RETIRO'
+
     df_retiros['(m³) TOTAL RUTA'] = df_retiros['(m³)']
     df_retiros['ORDEN'] = 0
     df_retiros['CAMIÓN'] = df_retiros['TIPO DE ENTREGA']
@@ -91,6 +93,15 @@ def obtener_dataframe_datos(fecha: str):
         "ESTADO REVISIÓN"
     ]]
     
+
+    try:
+        if not os.path.exists('retiros'):
+            os.makedirs('retiros')
+        df_retiros.to_excel(f"retiros/retiros-{fecha}.xlsx", index=False)
+    except PermissionError:
+        print(f"No se pudo escribir 'retiros/retiros-{fecha}.xlsx', permiso denegado.")
+    
+
     try:
         if not os.path.exists('retiros'):
             os.makedirs('retiros')
@@ -283,10 +294,9 @@ def procesar_query(df_query: pd.DataFrame) -> pd.DataFrame:
         return df_query
       
     try:
-        query_excel_path = 'test/excel_query.xlsx'
-        if not os.path.exists(query_excel_path):
-            os.makedirs(query_excel_path)
-        df_query.to_excel(query_excel_path, index=False)
+        if not os.path.exists('test'):
+            os.makedirs('test')
+        df_query.to_excel('test/excel_query.xlsx', index=False)
     except PermissionError:
         print("No se pudo acceder a test/excel_query.xlsx, permiso denegado.")
 

@@ -107,9 +107,9 @@ class VentanaRuteo(VentanaDataframe):
 
         def ver_ventana_despachos(self):
             self.ventana_despachos = VentanaDespachos()
-            # self.ventana_despachos.finished.connect(self.actualizar_label_vol_total_despachos)
+            self.ventana_despachos.finished.connect(self.actualizar_vol_total)
             self.ventana_despachos.show()
-            
+
         def actualizar_vol_total(self):
             vol_total = np.float64(VentanaDataframe.getDataFrame()['VOLUMEN'].sum()).round(2)
             self.stretch.setText(
@@ -168,14 +168,15 @@ class VentanaRuteo(VentanaDataframe):
             for nombre, camion in self.entregas.camiones.items():
                 self.lista_camiones.addCamion(nombre, camion, ruteo=True)
                 
-            self.lista_camiones.camion_enviado.connect(self.actualizar_volumen_ruta)
-            self.lista_camiones.cambio.connect(self.actualizar_volumen_ruta)
-                
+
             self.volumen_ruta = QLabel()
             self.volumen_ruta.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.volumen_ruta.setTextFormat(Qt.TextFormat.MarkdownText)
             self.actualizar_volumen_ruta()
             self.v_layout.addWidget(self.volumen_ruta)
+
+            
+            self.lista_camiones.cambio.connect(self.actualizar_volumen_ruta)
 
             self.v_layout.addWidget(self.lista_camiones)
             self.addLayout(self.v_layout)
@@ -212,6 +213,15 @@ class VentanaRuteo(VentanaDataframe):
             self.calc_dlg = ConfirmDialog(self.lista_camiones)
             self.calc_dlg.salida_confirmada.connect(self.__on_model_cancel)
             self.calc_dlg.exec()
+            
+        def actualizar_volumen_ruta(self, nombre="", truck=None):
+            vol_total = 0
+            dict_camiones = self.lista_camiones.toDict()
+            for camion in dict_camiones:
+                vol_total += dict_camiones[camion].capacidad * dict_camiones[camion].vueltas
+            self.volumen_ruta.setText(
+                f"*Volumen teórico de ruteo: {vol_total}*"
+            )
 
         def __on_model_cancel(self):
             self.worker_thread.terminate()
